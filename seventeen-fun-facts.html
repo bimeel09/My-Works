@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SEVENTEEN — Fun Facts</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#ff7a7a;--muted:#9aa6b2}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:linear-gradient(180deg,#081124 0%,#071021 100%);color:#e6f0ff}
+    .wrap{width:min(760px,92%);text-align:center}
+    header{margin-bottom:20px}
+    h1{font-size:clamp(1.2rem,3.2vw,2rem);margin:0 0 6px}
+    p.lead{color:var(--muted);margin:0 0 18px}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:28px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);box-shadow:0 6px 30px rgba(2,6,23,0.6)}
+    .fact{font-size:clamp(1rem,2.5vw,1.25rem);line-height:1.45;margin:0 0 18px;min-height:3.6em}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    button{background:var(--accent);color:#081124;border:0;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:600}
+    button.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);font-weight:600}
+    .meta{margin-top:14px;color:var(--muted);font-size:0.9rem}
+    footer{margin-top:18px;color:var(--muted);font-size:0.85rem}
+    .members{font-size:0.88rem;color:#dbe9ff;margin-top:8px}
+    @media (prefers-reduced-motion: no-preference){.fact.show{animation:pop .28s ease forwards} @keyframes pop{from{transform:translateY(6px) scale(0.995);opacity:0} to{transform:none;opacity:1}}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <h1>SEVENTEEN — Random Fun Facts</h1>
+      <p class="lead">Click the button to reveal a fun fact about SEVENTEEN. Facts are friendly and fan-centered.</p>
+    </header>
+
+    <section class="card" aria-live="polite">
+      <p id="fact" class="fact">Welcome! Hit "New Fact" to begin.</p>
+
+      <div class="controls">
+        <button id="newBtn">New Fact</button>
+        <button id="prevBtn" class="secondary">Previous</button>
+        <button id="copyBtn" class="secondary">Copy</button>
+        <button id="tweetBtn" class="secondary">Share</button>
+      </div>
+
+      <div class="meta">
+        <label><input id="autoToggle" type="checkbox" /> Auto-rotate every 6s</label>
+        <div class="members">Members: S.Coups, Jeonghan, Joshua, Jun, Hoshi, Wonwoo, Woozi, DK, Mingyu, The8, Seungkwan, Vernon, Dino</div>
+      </div>
+    </section>
+
+    <footer>
+      Tip: press spacebar for a new fact. This page is fan-made and for fun.
+    </footer>
+  </main>
+
+  <script>
+    const facts = [
+      "SEVENTEEN is known as a self-producing K-pop group where many members participate in songwriting and production.",
+      "They debuted on May 26, 2015, under Pledis Entertainment.",
+      "There are 13 members in SEVENTEEN, and they perform with tight synchronized choreography.",
+      "The group is divided into three units: Hip-Hop, Vocal, and Performance — each focusing on different strengths.",
+      "Woozi is widely recognized for his role as a main producer and frequent songwriter for the group.",
+      "Fans of SEVENTEEN are called CARAT — the fandom name symbolizes precious support.",
+      "S.Coups serves as the group's leader and often represents SEVENTEEN in interviews and events.",
+      "SEVENTEEN is praised for energetic live shows and detailed stage production.",
+      "Members have pursued solo activities, acting, variety shows, and sub-unit releases in addition to group work.",
+      "The group's choreography and formations are frequently highlighted for creativity and synchronization.",
+      "SEVENTEEN places strong emphasis on teamwork: members are involved in choreography, composing, and arranging.",
+      "They have a reputation for close interaction with fans through V-Lives, behind-the-scenes content, and fan events."
+    ];
+
+    const factEl = document.getElementById('fact');
+    const newBtn = document.getElementById('newBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const tweetBtn = document.getElementById('tweetBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const autoToggle = document.getElementById('autoToggle');
+
+    let history = [];
+    let currentIndex = -1;
+    let timer = null;
+
+    function showFact(idx){
+      const text = facts[idx];
+      factEl.classList.remove('show');
+      void factEl.offsetWidth;
+      factEl.textContent = text;
+      factEl.classList.add('show');
+      currentIndex = idx;
+      history.push(idx);
+      if(history.length>50) history.shift();
+    }
+
+    function randomFact(){
+      if(facts.length===0) return;
+      let idx; do{ idx = Math.floor(Math.random()*facts.length);}while(idx===currentIndex && facts.length>1);
+      showFact(idx);
+    }
+
+    newBtn.addEventListener('click', randomFact);
+    prevBtn.addEventListener('click', ()=>{
+      if(history.length<2) return; history.pop(); const prev = history.pop(); showFact(prev);
+    });
+
+    copyBtn.addEventListener('click', async ()=>{
+      try{ await navigator.clipboard.writeText(factEl.textContent); copyBtn.textContent='Copied!'; setTimeout(()=>copyBtn.textContent='Copy',1200);}catch(e){copyBtn.textContent='Unable to copy';setTimeout(()=>copyBtn.textContent='Copy',1400)}
+    });
+
+    tweetBtn.addEventListener('click', ()=>{
+      const url = encodeURIComponent(location.href);
+      const text = encodeURIComponent(factEl.textContent + ' — via SEVENTEEN Fun Facts');
+      window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`,'_blank');
+    });
+
+    document.addEventListener('keydown', (e)=>{ if(e.code==='Space'){ e.preventDefault(); randomFact(); }});
+
+    autoToggle.addEventListener('change', ()=>{
+      if(autoToggle.checked){ timer = setInterval(randomFact,6000);}else{ clearInterval(timer); timer=null }
+    });
+
+    // show an initial fact
+    setTimeout(randomFact,300);
+  </script>
+</body>
+</html>
