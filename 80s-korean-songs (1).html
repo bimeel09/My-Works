@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>80s Korean Songs Player</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .songs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .song-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .song-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .album-cover {
+            width: 100%;
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3em;
+            color: white;
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .album-cover::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.1) 2px,
+                rgba(0, 0, 0, 0.1) 4px
+            );
+            pointer-events: none;
+        }
+
+        .album-cover.active {
+            animation: spin 4s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .song-info {
+            padding: 20px;
+            background: white;
+        }
+
+        .song-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .song-artist {
+            font-size: 0.95em;
+            color: #666;
+            margin-bottom: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .song-year {
+            font-size: 0.85em;
+            color: #999;
+            margin-bottom: 15px;
+        }
+
+        .play-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        .play-btn:hover {
+            opacity: 0.9;
+        }
+
+        .play-btn.playing {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .player-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 30px;
+            color: white;
+            display: none;
+        }
+
+        .player-section.active {
+            display: block;
+        }
+
+        .now-playing-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .player-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.3em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .control-btn.play-pause {
+            width: 70px;
+            height: 70px;
+            font-size: 1.8em;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .progress-container {
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .close-player {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .close-player:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .songs-grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 20px;
+            }
+
+            .player-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 80s Korean Classics</h1>
+        <p class="subtitle">Experience the Golden Age of Korean Music</p>
+
+        <div class="songs-grid" id="songsGrid">
+            <!-- Songs will be dynamically inserted here -->
+        </div>
+
+        <div class="player-section" id="playerSection">
+            <div class="now-playing-title">Now Playing: <span id="nowPlayingTitle"></span></div>
+            
+            <div class="player-controls">
+                <button class="control-btn" id="prevBtn">⏮</button>
+                <button class="control-btn play-pause" id="playPauseBtn">▶</button>
+                <button class="control-btn" id="nextBtn">⏭</button>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="time-display">
+                    <span id="currentTime">0:00</span>
+                    <span id="duration">0:00</span>
+                </div>
+            </div>
+
+            <button class="close-player" id="closePlayerBtn">Close Player</button>
+        </div>
+    </div>
+
+    <!-- Hidden audio element -->
+    <audio id="audioPlayer"></audio>
+
+    <script>
+        // Sample data for 80s Korean songs
+        const songs = [
+            {
+                id: 1,
+                title: "아름다운 강산",
+                artist: "조용필",
+                year: 1981,
+                duration: 240,
+                emoji: "🎸"
+            },
+            {
+                id: 2,
+                title: "비",
+                artist: "김상희",
+                year: 1983,
+                duration: 220,
+                emoji: "🌧️"
+            },
+            {
+                id: 3,
+                title: "아시아의 별",
+                artist: "조항루",
+                year: 1985,
+                duration: 200,
+                emoji: "⭐"
+            },
+            {
+                id: 4,
+                title: "당신만을",
+                artist: "한영애",
+                year: 1982,
+                duration: 230,
+                emoji: "💕"
+            },
+            {
+                id: 5,
+                title: "못 찾겠어요",
+                artist: "조용필",
+                year: 1984,
+                duration: 250,
+                emoji: "🔍"
+            },
+            {
+                id: 6,
+                title: "안개",
+                artist: "이용",
+                year: 1986,
+                duration: 260,
+                emoji: "🌫️"
+            },
+            {
+                id: 7,
+                title: "옛사랑",
+                artist: "남진",
+                year: 1980,
+                duration: 210,
+                emoji: "🌹"
+            },
+            {
+                id: 8,
+                title: "그리움 속에 피어난 꽃",
+                artist: "윤형주",
+                year: 1987,
+                duration: 240,
+                emoji: "🌸"
+            }
+        ];
+
+        let currentSongIndex = 0;
+        let isPlaying = false;
+        const audio = document.getElementById('audioPlayer');
+        const songsGrid = document.getElementById('songsGrid');
+        const playerSection = document.getElementById('playerSection');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const closePlayerBtn = document.getElementById('closePlayerBtn');
+        const nowPlayingTitle = document.getElementById('nowPlayingTitle');
+        const progressFill = document.getElementById('progressFill');
+        const currentTimeDisplay = document.getElementById('currentTime');
+        const durationDisplay = document.getElementById('duration');
+
+        // Render songs grid
+        function renderSongs() {
+            songsGrid.innerHTML = songs.map((song, index) => `
+                <div class="song-card" onclick="playSong(${index})">
+                    <div class="album-cover" data-song-index="${index}">
+                        ${song.emoji}
+                    </div>
+                    <div class="song-info">
+                        <div class="song-title">${song.title}</div>
+                        <div class="song-artist">${song.artist}</div>
+                        <div class="song-year">${song.year}</div>
+                        <button class="play-btn" onclick="playSong(${index}); event.stopPropagation();">
+                            ▶ Play
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Format time display
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Play song
+        function playSong(index) {
+            currentSongIndex = index;
+            const song = songs[index];
+            
+            // Simulate audio playback (in a real app, you'd have actual audio URLs)
+            audio.src = `https://via.placeholder.com/audio?title=${encodeURIComponent(song.title)}`;
+            
+            // Set mock duration
+            audio.duration = song.duration;
+            
+            nowPlayingTitle.textContent = `${song.title} - ${song.artist}`;
+            playerSection.classList.add('active');
+            
+            // Update album covers
+            document.querySelectorAll('.album-cover').forEach((el, i) => {
+                el.classList.toggle('active', i === index);
+            });
+
+            // Update play button states
+            document.querySelectorAll('.play-btn').forEach((btn, i) => {
+                btn.classList.toggle('playing', i === index);
+            });
+
+            // Simulate playback
+            simulatePlayback(song.duration);
+            isPlaying = true;
+            updatePlayPauseBtn();
+        }
+
+        // Simulate playback
+        function simulatePlayback(duration) {
+            let elapsed = 0;
+            const interval = setInterval(() => {
+                if (!isPlaying) {
+                    clearInterval(interval);
+                    return;
+                }
+                
+                elapsed += 0.1;
+                const progress = (elapsed / duration) * 100;
+                
+                progressFill.style.width = progress + '%';
+                currentTimeDisplay.textContent = formatTime(elapsed);
+                durationDisplay.textContent = formatTime(duration);
+
+                if (elapsed >= duration) {
+                    clearInterval(interval);
+                    playNext();
+                }
+            }, 100);
+        }
+
+        // Play/Pause
+        function togglePlayPause() {
+            if (currentSongIndex === null) {
+                playSong(0);
+            } else {
+                isPlaying = !isPlaying;
+                updatePlayPauseBtn();
+            }
+        }
+
+        // Update play/pause button
+        function updatePlayPauseBtn() {
+            playPauseBtn.textContent = isPlaying ? '⏸' : '▶';
+        }
+
+        // Next song
+        function playNext() {
+            currentSongIndex = (currentSongIndex + 1) % songs.length;
+            playSong(currentSongIndex);
+        }
+
+        // Previous song
+        function playPrev() {
+            currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+            playSong(currentSongIndex);
+        }
+
+        // Close player
+        function closePlayer() {
+            playerSection.classList.remove('active');
+            isPlaying = false;
+            updatePlayPauseBtn();
+            document.querySelectorAll('.album-cover').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelectorAll('.play-btn').forEach(btn => {
+                btn.classList.remove('playing');
+            });
+        }
+
+        // Event listeners
+        playPauseBtn.addEventListener('click', togglePlayPause);
+        nextBtn.addEventListener('click', playNext);
+        prevBtn.addEventListener('click', playPrev);
+        closePlayerBtn.addEventListener('click', closePlayer);
+
+        // Initialize
+        renderSongs();
+    </script>
+</body>
+</html>
